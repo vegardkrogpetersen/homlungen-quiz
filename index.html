@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homlungen fyrstasjon – historie i havgapet</title>
+    <style>
+        /* CSS Reset og Grunnleggende Variabler */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy-dark: #0a192f;
+            --navy-primary: #0f2537;
+            --navy-light: #1e3a5f;
+            --accent-gold: #d97706;
+            --accent-gold-hover: #b45309;
+            --accent-gold-light: #fef3c7;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --bg-light: #f4f7f9;
+            --card-bg: #ffffff;
+            --success-color: #15803d;
+            --success-bg: #f0fdf4;
+            --error-color: #b91c1c;
+            --error-bg: #fef2f2;
+            --border-radius: 12px;
+            --transition: all 0.25s ease-in-out;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* App container */
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px -5px rgba(15, 37, 55, 0.1), 0 8px 10px -6px rgba(15, 37, 55, 0.1);
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--navy-primary);
+            color: #ffffff;
+            padding: 28px 24px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent-gold);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: #d1d5db;
+            font-size: 1.05rem;
+        }
+
+        /* Innhold og Seksjoner */
+        .content {
+            padding: 32px 24px;
+        }
+
+        /* Fremdriftslinje */
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e5e7eb;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent-gold);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--navy-primary);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Spørsmål kort */
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--navy-dark);
+            margin-bottom: 24px;
+        }
+
+        /* Alternativer */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .option-btn {
+            background-color: #ffffff;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--navy-light);
+            background-color: #f8fafc;
+        }
+
+        .option-btn:focus-visible {
+            outline: 3px solid var(--accent-gold);
+            outline-offset: 2px;
+        }
+
+        .option-btn.selected {
+            border-color: var(--navy-primary);
+            background-color: #eff6ff;
+            font-weight: 600;
+        }
+
+        .option-btn.correct-highlight {
+            border-color: var(--success-color);
+            background-color: var(--success-bg);
+            color: var(--success-color);
+        }
+
+        .option-btn.wrong-highlight {
+            border-color: var(--error-color);
+            background-color: var(--error-bg);
+            color: var(--error-color);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        /* Tilbakemelding Boks */
+        .feedback-box {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .feedback-box.correct {
+            display: block;
+            background-color: var(--success-bg);
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .feedback-box.incorrect {
+            display: block;
+            background-color: var(--error-bg);
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .feedback-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-text {
+            font-size: 1rem;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        /* Knapper */
+        .action-btn {
+            background-color: var(--accent-gold);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 16px 28px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:hover:not(:disabled) {
+            background-color: var(--accent-gold-hover);
+            transform: translateY(-1px);
+        }
+
+        .action-btn:focus-visible {
+            outline: 3px solid var(--navy-primary);
+            outline-offset: 2px;
+        }
+
+        .action-btn:disabled {
+            background-color: #d1d5db;
+            color: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Resultatskjerm */
+        .results-container {
+            display: none;
+            text-align: left;
+        }
+
+        .score-card {
+            background-color: #f0f9ff;
+            border: 2px solid #bae6fd;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .score-card h2 {
+            font-size: 1.5rem;
+            color: var(--navy-primary);
+            margin-bottom: 8px;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+            line-height: 1;
+            margin: 12px 0;
+        }
+
+        .summary-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--navy-primary);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .failed-item {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-left: 5px solid var(--error-color);
+            border-radius: 6px;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .failed-item h3 {
+            font-size: 1.05rem;
+            color: var(--navy-dark);
+            margin-bottom: 10px;
+        }
+
+        .answer-detail {
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .user-answer {
+            color: var(--error-color);
+            font-weight: 600;
+        }
+
+        .correct-answer {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .failed-explanation {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background-color: var(--bg-light);
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .no-errors {
+            background-color: var(--success-bg);
+            border: 1px solid #bbf7d0;
+            color: var(--success-color);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        /* Responsivitet */
+        @media (min-width: 640px) {
+            header h1 {
+                font-size: 2.1rem;
+            }
+            .action-btn {
+                width: auto;
+                min-width: 200px;
+                float: right;
+            }
+            .button-wrapper::after {
+                content: "";
+                clear: both;
+                display: table;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" role="main">
+    <header>
+        <h1>Homlungen fyrstasjon</h1>
+        <p>Historie i havgapet – interaktiv quiz</p>
+    </header>
+
+    <div class="content">
+        <!-- Aktiv Quiz Seksjon -->
+        <div id="quiz-section">
+            <div class="progress-text">
+                <span id="progress-count">Spørsmål 1 av 15</span>
+                <span id="score-live">Poeng: 0</span>
+            </div>
+            
+            <div class="progress-bar-container" aria-hidden="true">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="question-text" id="question-text">Laster spørsmål...</div>
+
+            <div class="options-grid" id="options-container" role="radiogroup" aria-labelledby="question-text">
+                <!-- Alternativer settes inn med JS -->
+            </div>
+
+            <div class="feedback-box" id="feedback-box" aria-live="polite">
+                <div class="feedback-title" id="feedback-title"></div>
+                <div class="feedback-text" id="feedback-explanation"></div>
+            </div>
+
+            <div class="button-wrapper">
+                <button class="action-btn" id="action-btn" onclick="handleAction()" disabled>Sjekk svar</button>
+            </div>
+        </div>
+
+        <!-- Resultat Seksjon -->
+        <div id="results-section" class="results-container">
+            <div class="score-card">
+                <h2>Quiz fullført!</h2>
+                <p>Din samlede poengsum:</p>
+                <div class="score-number" id="final-score">0 / 15</div>
+                <p id="score-comment"></p>
+            </div>
+
+            <div class="summary-title">Gjennomgang av besvarte spørsmål</div>
+            <div id="summary-container">
+                <!-- Feilsvar eller perfekt score legges inn her -->
+            </div>
+
+            <div class="button-wrapper" style="margin-top: 24px;">
+                <button class="action-btn" onclick="restartQuiz()">Spill på nytt</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Spørsmålsdatabase med 15 spørsmål
+    const quizData = [
+        {
+            id: 1,
+            question: "Hva er den mest sannsynlige opprinnelsen til navnet Homlungen?",
+            options: [
+                "A) Det stammer fra insektsnavnet humla på grunn av bølgenes summing.",
+                "B) Det stammer fra det norrøne hamall og humul, som betyr en «avrundet bergknoll».",
+                "C) Det er oppkalt etter en historisk person ved navn Humle som bodde der på 1600-tallet.",
+                "D) Det kommer av et eldgammelt ord for et gjemmested for sjøfolk."
+            ],
+            correct: 1,
+            explanation: "Teksten opplyser at navnet mest sannsynlig stammer fra det norrøne hamall (avrundet) og humul (liten rundvoren stein) med betydningen «avrundet topp» eller «en avrundet bergknoll». Insektsteorien nevnes som en alternativ, men forkastet teori."
+        },
+        {
+            id: 2,
+            question: "Hva betyr etterleddet i navnet Lauersvelgen?",
+            options: [
+                "A) En dyp vik med rolig badevann.",
+                "B) En trygg havn for vinteropplag.",
+                "C) En strømhvirvel, malstrøm eller et trangt, strømfult sund.",
+                "D) En flat sandstrand utsatt for storm."
+            ],
+            correct: 2,
+            explanation: "Teksten forklarer at etterleddet svelg kommer fra norrønt og blant annet betyr «straumkvervel, malstraum» og brukes om trange, strømfulle sund i et værutsatt og farlig område."
+        },
+        {
+            id: 3,
+            question: "Hvilken gård var Homlungen husmannsplass under?",
+            options: [
+                "A) Skjærhalden gård",
+                "B) Prestegården på Kirkøy",
+                "C) Rove gård",
+                "D) Bøbakke gård"
+            ],
+            correct: 1,
+            explanation: "Teksten fastslår at Homlungen var en husmannsplass (bruksnummer 4) under Prestegården (gårdsnummer 3) på Kirkøy."
+        },
+        {
+            id: 4,
+            question: "Hvilken bys sjøfartsmiljø tok primært initiativ til å få oppført et ledfyr ved Hvaler i 1845?",
+            options: [
+                "A) Fredrikstad",
+                "B) Sarpsborg",
+                "C) Fredrikshald",
+                "D) Holmestrand"
+            ],
+            correct: 2,
+            explanation: "Teksten viser til at det var Directionen for Frederikshalds Skibsassurance-Forening som i 1845 kom med et andragende om å få oppført et ledfyr, og at fyret hovedsakelig ble bygd for å trygge innseilingen til Fredrikshald."
+        },
+        {
+            id: 5,
+            question: "Hvilken utfordring knyttet til kildekritikk trekkes frem når det gjelder forlisene som ble nevnt i søknaden om fyr i 1845?",
+            options: [
+                "A) Teksten dokumenterer ikke sikkert hvor og når de omtalte forlisene skjedde.",
+                "B) Alle forlisene i søknaden viste seg å være oppdiktet av assuranseforeningen.",
+                "C) Kilder viser at skipene egentlig forliste på svensk side ved Koster.",
+                "D) Arkivene har nøyaktige lister som motbeviser at noen skip gikk ned i 1845."
+            ],
+            correct: 0,
+            explanation: "Teksten påpeker at vi gjerne skulle hatt ytterligere opplysninger, og at det ikke står spesifikt hvor eller når disse forlisene skjedde, samt at påstander om eksakte steder kan være en ekstrapolasjon."
+        },
+        {
+            id: 6,
+            question: "Hvorfor ble regjeringens forslag om å bygge Homlungen fyr nedstemt i Stortinget i 1848?",
+            options: [
+                "A) Fordi det ble funnet opp oljelamper som gjorde fyret unødvendig.",
+                "B) Fordi det ble ansett som et havnefyr som nærmest måtte påligge vedkommende havnekasse.",
+                "C) Fordi svenske myndigheter protesterte mot plasseringen.",
+                "D) Fordi man fant en tryggere plass lenger nord ved Løperen."
+            ],
+            correct: 1,
+            explanation: "Teksten oppgir at forslaget ble nedstemt i Stortinget med begrunnelsen «dels fordi det enten er havnefyr eller så nær derved at det Oppførelse formentlig nærmest maa paaligge vedkommende Havnekasse»."
+        },
+        {
+            id: 7,
+            question: "Når stod Homlungen fyr ferdig tent?",
+            options: [
+                "A) 1. oktober 1867",
+                "B) 1. juli 1849",
+                "C) 16. mars 1869",
+                "D) 15. oktober 1853"
+            ],
+            correct: 0,
+            explanation: "Teksten oppgir at fyret ble tent 1. oktober 1867, etter at husmannsplassen ble solgt til Fyrvesenet på våren samme år."
+        },
+        {
+            id: 8,
+            question: "Hvem var den første faste fyrvokteren på Homlungen fyrstasjon, og hvor lenge virket han der?",
+            options: [
+                "A) Petter Herman Emil Olsen (1925–1936)",
+                "B) Hjalmar Christian Andreas Nielsen (1906–1912)",
+                "C) Johan Frederik Jørgensen (1867–1904)",
+                "D) Maurits Teobald Larsen (1913–1918)"
+            ],
+            correct: 2,
+            explanation: "Oversikten over fyrvoktere viser at Johan Frederik Jørgensen var fyrvokter på stasjonen i perioden 1867–1904 sammen med sin kone Olava Andersdatter."
+        },
+        {
+            id: 9,
+            question: "Hvorfor ble det på 1890-tallet bygget to nye ledfyr ved Sauholmen og Børholmen?",
+            options: [
+                "A) Fordi Homlungen fyr ble ødelagt i en brann.",
+                "B) Fordi sjølodsene var bekymret for lysets sektorer og overgangen mellom rødt og hvitt lys på Homlungen.",
+                "C) Fordi elektrifiseringen av Homlungen krevde flere stasjoner.",
+                "D) Fordi Sverige krevde bedre oppmerking langs grensen."
+            ],
+            correct: 1,
+            explanation: "Teksten viser til kaptein Wilses beretning om at overgangen mellom det røde og hvite lyset ikke var skarpt nok, noe som gjorde det vanskelig å unngå grunner som Haken og Øsa, og at Sauholmen og Børholmen ble bygget som «hjelpefyr» i 1892–1893."
+        },
+        {
+            id: 10,
+            question: "Hvilket husdyr holdt fyrvokterfamilien på stasjonen for å få melk?",
+            options: [
+                "A) En geit",
+                "B) En ku",
+                "C) En hest",
+                "D) To griser"
+            ],
+            correct: 1,
+            explanation: "Teksten opplyser under bygningsbeskrivelsen at det ble bygget et lite fjøs i gråstein med «egen ku for å få melk»."
+        },
+        {
+            id: 11,
+            question: "Hvilken funksjon hadde fyrstasjonen frem til 2008 etter at den ble automatisert?",
+            options: [
+                "A) Militær observasjonspost for Forsvaret",
+                "B) Skole for barna på Lauer",
+                "C) Feriehjem for Kystverkets ansatte",
+                "D) Museum og utsalgssted for kystkultur"
+            ],
+            correct: 2,
+            explanation: "Teksten opplyser at stasjonen ble brukt som feriehjem for Kystverkets ansatte t.o.m. 2008 under navnet «Homlungen feriehjemslag»."
+        },
+        {
+            id: 12,
+            question: "Hva ble Homlungen fyrstasjon tatt i bruk som fra 2012?",
+            options: [
+                "A) Kystledhytte av Oslofjordens Friluftsråd (OF)",
+                "B) Hotell og restaurant driftet av kommunen",
+                "C) Fast bolig for sjøfolk i pensjon",
+                "D) Yrkesfiskernes foreningslokale"
+            ],
+            correct: 0,
+            explanation: "Teksten viser at stasjonen ble opprettet som kystledhytte fra 2012 i regi av Oslofjordens Friluftsråd (OF)."
+        },
+        {
+            id: 13,
+            question: "Hvilken opplevelse av varemangel på Lauer og Homlungen under andre verdenskrig trekkes frem av Christine Randbøl?",
+            options: [
+                "A) Det var overflod av importert mat fra Sverige.",
+                "B) Klær ble omsydd av før omsydd, og melsekker ble farget om til sommerkjoler.",
+                "C) Alle barn fikk nye uniformer fra staten.",
+                "D) Man kunne kjøpe fløyel og gullknapper i rike mengder."
+            ],
+            correct: 1,
+            explanation: "Teksten gjengir Christine Randbøls erindringer om mangelen på alt, der klær ble omsydd av før omsydd, og melsekker ble farvet og oppsto som sommerkjoler."
+        },
+        {
+            id: 14,
+            question: "Hva kom man fram til da en av kanonene som ble funnet ved Auer båke ble presentert på Borgarsyssel Museum i 1969?",
+            options: [
+                "A) At den kom fra et fransk krigsskip fra 1200-tallet.",
+                "B) At den stammet fra en tysk ubåt under første verdenskrig.",
+                "C) At den var fra et forlist orlogsfartøy og ca. 200 år gammel (fra midten av 1700-tallet).",
+                "D) At den ble brukt som tåkesignal på Homlungen i 1867."
+            ],
+            correct: 2,
+            explanation: "Teksten opplyser at man da kanonen ble presentert høsten 1969 kom fram til at den var fra et forlist orlogsfartøy og ca. 200 år gammel, altså fra midten av 1700-tallet."
+        },
+        {
+            id: 15,
+            question: "Hvilken offisiell status fikk Homlungen fyr i 1997?",
+            options: [
+                "A) Den ble revet for å gi plass til ny farvannsmerking.",
+                "B) Den ble fredet.",
+                "C) Den ble solgt til private eiere.",
+                "D) Den ble erklært som internasjonal havn."
+            ],
+            correct: 1,
+            explanation: "Teksten opplyser kort og konsist at fyret ble automatisert og avbemannet i 1952, og deretter «Fredet 1997»."
+        }
+    ];
+
+    // Applikasjonstilstand
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let selectedOption = null;
+    let isAnswerChecked = false;
+    let userAnswers = [];
+
+    // DOM Elementer
+    const questionTextEl = document.getElementById('question-text');
+    const optionsContainerEl = document.getElementById('options-container');
+    const feedbackBoxEl = document.getElementById('feedback-box');
+    const feedbackTitleEl = document.getElementById('feedback-title');
+    const feedbackExplanationEl = document.getElementById('feedback-explanation');
+    const actionBtnEl = document.getElementById('action-btn');
+    const progressCountEl = document.getElementById('progress-count');
+    const scoreLiveEl = document.getElementById('score-live');
+    const progressBarEl = document.getElementById('progress-bar');
+    
+    const quizSectionEl = document.getElementById('quiz-section');
+    const resultsSectionEl = document.getElementById('results-section');
+    const finalScoreEl = document.getElementById('final-score');
+    const scoreCommentEl = document.getElementById('score-comment');
+    const summaryContainerEl = document.getElementById('summary-container');
+
+    // Initialiser quizen når siden lastes
+    window.onload = function() {
+        loadQuestion();
+    };
+
+    // Last gjeldende spørsmål
+    function loadQuestion() {
+        const q = quizData[currentQuestionIndex];
+        
+        // Tilbakestill tilstand for nytt spørsmål
+        selectedOption = null;
+        isAnswerChecked = false;
+        
+        // Oppdater tekst og fremdrift
+        questionTextEl.textContent = q.question;
+        progressCountEl.textContent = `Spørsmål ${currentQuestionIndex + 1} av ${quizData.length}`;
+        scoreLiveEl.textContent = `Poeng: ${score}`;
+        
+        const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+        progressBarEl.style.width = `${progressPercent}%`;
+
+        // Skjul tilbakemelding
+        feedbackBoxEl.className = 'feedback-box';
+        feedbackBoxEl.style.display = 'none';
+
+        // Nullstill knapp
+        actionBtnEl.textContent = 'Sjekk svar';
+        actionBtnEl.disabled = true;
+
+        // Bygg alternativer
+        optionsContainerEl.innerHTML = '';
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.setAttribute('role', 'radio');
+            btn.setAttribute('aria-checked', 'false');
+            btn.onclick = () => selectOption(idx);
+            optionsContainerEl.appendChild(btn);
+        });
+    }
+
+    // Velg alternativ
+    function selectOption(index) {
+        if (isAnswerChecked) return;
+
+        selectedOption = index;
+        const buttons = optionsContainerEl.querySelectorAll('.option-btn');
+        
+        buttons.forEach((btn, idx) => {
+            if (idx === index) {
+                btn.classList.add('selected');
+                btn.setAttribute('aria-checked', 'true');
+            } else {
+                btn.classList.remove('selected');
+                btn.setAttribute('aria-checked', 'false');
+            }
+        });
+
+        actionBtnEl.disabled = false;
+    }
+
+    // Håndter knappeklikk (Sjekk svar / Neste spørsmål)
+    function handleAction() {
+        if (!isAnswerChecked) {
+            checkAnswer();
+        } else {
+            nextQuestion();
+        }
+    }
+
+    // Sjekk avgitt svar
+    function checkAnswer() {
+        if (selectedOption === null) return;
+
+        isAnswerChecked = true;
+        const q = quizData[currentQuestionIndex];
+        const isCorrect = (selectedOption === q.correct);
+
+        // Lagre brukerens svar for oppsummering
+        userAnswers.push({
+            questionId: q.id,
+            questionText: q.question,
+            selected: selectedOption,
+            selectedText: q.options[selectedOption],
+            correct: q.correct,
+            correctText: q.options[q.correct],
+            isCorrect: isCorrect,
+            explanation: q.explanation
+        });
+
+        // Oppdater poeng og fremvisning av alternativer
+        const buttons = optionsContainerEl.querySelectorAll('.option-btn');
+        buttons.forEach((btn, idx) => {
+            btn.disabled = true;
+            if (idx === q.correct) {
+                btn.classList.add('correct-highlight');
+            } else if (idx === selectedOption && !isCorrect) {
+                btn.classList.add('wrong-highlight');
+            }
+        });
+
+        if (isCorrect) {
+            score++;
+            scoreLiveEl.textContent = `Poeng: ${score}`;
+            feedbackTitleEl.textContent = '✓ Riktig svar!';
+            feedbackBoxEl.className = 'feedback-box correct';
+        } else {
+            feedbackTitleEl.textContent = '✕ Feil svar.';
+            feedbackBoxEl.className = 'feedback-box incorrect';
+        }
+
+        feedbackExplanationEl.textContent = q.explanation;
+        feedbackBoxEl.style.display = 'block';
+
+        // Oppdater knapp
+        actionBtnEl.textContent = (currentQuestionIndex < quizData.length - 1) ? 'Neste spørsmål' : 'Se resultater';
+        actionBtnEl.focus();
+    }
+
+    // Gå til neste spørsmål eller avslutt
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    // Vis resultat og oppsummering
+    function showResults() {
+        quizSectionEl.style.display = 'none';
+        resultsSectionEl.style.display = 'block';
+
+        finalScoreEl.textContent = `${score} / ${quizData.length}`;
+        progressBarEl.style.width = '100%';
+
+        // Vurdering av resultat
+        if (score === 15) {
+            scoreCommentEl.textContent = "Imponerende! Du har førsteklasses kunnskap om Homlungen fyrstasjon!";
+        } else if (score >= 11) {
+            scoreCommentEl.textContent = "Meget godt resultat! Du kjenner historien i havgapet godt.";
+        } else if (score >= 7) {
+            scoreCommentEl.textContent = "Godt forsøk! Du fikk med deg en god del av historien.";
+        } else {
+            scoreCommentEl.textContent = "Takk for innsatsen! Les gjerne gjennom oppsummeringen under for å lære mer.";
+        }
+
+        // Generer oppsummering av alle feilbesvarte spørsmål
+        summaryContainerEl.innerHTML = '';
+        const failedAnswers = userAnswers.filter(a => !a.isCorrect);
+
+        if (failedAnswers.length === 0) {
+            summaryContainerEl.innerHTML = `
+                <div class="no-errors">
+                    Fantastisk! Du besvarte alle spørsmålene riktig!
+                </div>
+            `;
+        } else {
+            failedAnswers.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'failed-item';
+                itemEl.innerHTML = `
+                    <h3>${item.questionText}</h3>
+                    <div class="answer-detail">Ditt svar: <span class="user-answer">${item.selectedText}</span></div>
+                    <div class="answer-detail">Riktig svar: <span class="correct-answer">${item.correctText}</span></div>
+                    <div class="failed-explanation"><strong>Forklaring:</strong> ${item.explanation}</div>
+                `;
+                summaryContainerEl.appendChild(itemEl);
+            });
+        }
+    }
+
+    // Tilbakestill og start på nytt
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        userAnswers = [];
+        resultsSectionEl.style.display = 'none';
+        quizSectionEl.style.display = 'block';
+        loadQuestion();
+    }
+</script>
+
+</body>
+</html>
